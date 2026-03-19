@@ -109,6 +109,16 @@ const Login = () => {
 <button
           type="button" // <-- Add this
           onClick={(e) => {
+            const handleGoogleLogin = async () => {
+    console.log("1. Google button was clicked!");
+    try {
+      console.log("2. Attempting to call Supabase auth...");
+      await login();
+      console.log("3. Supabase auth triggered.");
+    } catch (err) {
+      console.error("4. Login failed:", err);
+    }
+  };
             e.preventDefault(); // <-- Add this
             handleGoogleLogin();
           }}
