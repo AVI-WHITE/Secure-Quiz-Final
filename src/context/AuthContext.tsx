@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+
 import type { User } from "@supabase/supabase-js";
 
 export interface UserData {
@@ -67,15 +67,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      throw result.error;
+// PASTE THIS INSTEAD OF THE OLD LOGIN FUNCTION:
+const login = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin,
     }
-  };
+  });
 
+  if (error) {
+    console.error("Supabase login error:", error.message);
+    throw error; 
+  }
+};
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
