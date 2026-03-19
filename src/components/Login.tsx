@@ -106,9 +106,12 @@ const Login = () => {
         </div>
 
         <div className="text-center text-xs text-muted-foreground">or</div>
-
-        <button
-          onClick={handleGoogleLogin}
+<button
+          type="button" // <-- Add this
+          onClick={(e) => {
+            e.preventDefault(); // <-- Add this
+            handleGoogleLogin();
+          }}
           className="w-full px-4 py-2 rounded border border-border text-sm text-foreground font-medium"
         >
           Sign in with Google
