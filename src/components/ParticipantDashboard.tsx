@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DashboardNavbar from "./DashboardNavbar";
 import { useAuth } from "@/context/AuthContext";
-import { getExamsForStudent, getExamByJoinCode, type Exam } from "@/services/examService";
+import { getExamByJoinCode, type Exam } from "@/services/examService";
 import { hasStudentAttempted } from "@/services/resultService";
 import QuizSession from "./participant/QuizSession";
 import PastAttempts from "./participant/PastAttempts";
@@ -9,28 +9,11 @@ import { toast } from "sonner";
 
 const ParticipantDashboard = () => {
   const { user } = useAuth();
-  const [availableExams, setAvailableExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExamId, setActiveExamId] = useState<string | null>(null);
-  const [tab, setTab] = useState<"join" | "available" | "attempts">("join");
+  const [tab, setTab] = useState<"join" | "attempts">("join");
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
-
-  const loadExams = async () => {
-    if (!user) return;
-    setLoading(true);
-    const exams = await getExamsForStudent(user.id);
-    const withStatus = await Promise.all(
-      exams.map(async (e) => ({
-        exam: e,
-        attempted: await hasStudentAttempted(user.id, e.id!),
-      }))
-    );
-    setAvailableExams(withStatus.filter((x) => !x.attempted).map((x) => x.exam));
-    setLoading(false);
-  };
-
-  useEffect(() => { loadExams(); }, [user]);
 
   const handleJoinByCode = async () => {
     if (!user) return;
@@ -52,7 +35,7 @@ const ParticipantDashboard = () => {
         <DashboardNavbar />
         <main className="flex-1 p-4 overflow-y-auto">
           <div className="max-w-3xl mx-auto">
-            <QuizSession examId={activeExamId} onFinish={() => { setActiveExamId(null); loadExams(); }} />
+            <QuizSession examId={activeExamId} onFinish={() => { setActiveExamId(null); }} />
           </div>
         </main>
       </div>
@@ -70,10 +53,6 @@ const ParticipantDashboard = () => {
             <button onClick={() => setTab("join")}
               className={`px-3 py-1.5 text-sm ${tab === "join" ? "border-b-2 border-primary text-foreground font-medium" : "text-muted-foreground"}`}>
               Join by Code
-            </button>
-            <button onClick={() => setTab("available")}
-              className={`px-3 py-1.5 text-sm ${tab === "available" ? "border-b-2 border-primary text-foreground font-medium" : "text-muted-foreground"}`}>
-              Available Exams
             </button>
             <button onClick={() => setTab("attempts")}
               className={`px-3 py-1.5 text-sm ${tab === "attempts" ? "border-b-2 border-primary text-foreground font-medium" : "text-muted-foreground"}`}>
@@ -102,35 +81,6 @@ const ParticipantDashboard = () => {
                   {joining ? "Joining..." : "Join"}
                 </button>
               </div>
-            </div>
-          )}
-
-          {tab === "available" && (
-            <div className="space-y-2">
-              {loading ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">Loading...</p>
-              ) : availableExams.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center border border-border rounded p-6">
-                  No exams available right now.
-                </p>
-              ) : (
-                availableExams.map((exam) => (
-                  <div key={exam.id} className="border border-border rounded p-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground text-sm">{exam.title}</h3>
-                      {exam.description && <p className="text-xs text-muted-foreground mt-0.5">{exam.description}</p>}
-                      <p className="text-xs text-muted-foreground mt-0.5">{exam.questionIds.length} questions • {exam.duration} min</p>
-                      {exam.joinCode && <p className="text-xs text-muted-foreground mt-0.5">Code: {exam.joinCode}</p>}
-                    </div>
-                    <button
-                      onClick={() => setActiveExamId(exam.id!)}
-                      className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium"
-                    >
-                      Start Exam
-                    </button>
-                  </div>
-                ))
-              )}
             </div>
           )}
 
