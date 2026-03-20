@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     <div className="flex flex-col min-h-screen">
       <DashboardNavbar />
       <div className="flex flex-1">
-        <aside className="w-40 border-r border-border hidden md:flex flex-col p-2 gap-0.5">
+        <aside className="w-40 border-r border-border flex flex-col p-2 gap-0.5">
           {tabs.map((t) => (
             <button
               key={t.id}
