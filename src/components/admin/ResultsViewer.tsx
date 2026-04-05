@@ -19,9 +19,13 @@ const ResultsViewer = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!user) return;
-      const data = await getExamsByAdmin(user.id);
-      setExams(data);
+      if (!user) { setLoading(false); return; }
+      try {
+        const data = await getExamsByAdmin(user.id);
+        setExams(data);
+      } catch (e) {
+        console.error("Failed to load exams:", e);
+      }
       setLoading(false);
     };
     load();

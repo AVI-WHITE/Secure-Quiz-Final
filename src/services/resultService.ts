@@ -33,17 +33,32 @@ export const submitResult = async (result: Omit<ExamResult, "id">) => {
 };
 
 export const getResultsByExam = async (examId: string): Promise<ExamResult[]> => {
+  // Fetch results
   const { data, error } = await supabase
     .from("results")
-    .select("*, profiles:user_id(name, email)")
+    .select("*")
     .eq("quiz_id", examId)
     .order("submitted_at", { ascending: false });
   if (error) throw error;
+
+  // Fetch profile info separately since there's no FK
+  const userIds = [...new Set((data || []).map((r: any) => r.user_id))];
+  const profileMap: Record<string, { name: string; email: string }> = {};
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, name, email")
+      .in("user_id", userIds);
+    (profiles || []).forEach((p: any) => {
+      profileMap[p.user_id] = { name: p.name || "Unknown", email: p.email || "" };
+    });
+  }
+
   return (data || []).map((r: any) => ({
     id: r.id,
     studentId: r.user_id,
-    studentName: r.profiles?.name || "Unknown",
-    studentEmail: r.profiles?.email || "",
+    studentName: profileMap[r.user_id]?.name || "Unknown",
+    studentEmail: profileMap[r.user_id]?.email || "",
     examId: r.quiz_id,
     examTitle: "",
     answers: r.answers || {},
