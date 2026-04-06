@@ -26,12 +26,15 @@ const QuizSession = ({ examId, onFinish }: QuizSessionProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<{ score: number; total: number; percentage: number } | null>(null);
+  const hasLoadedRef = useRef(false);
   const autoSubmitRef = useRef<() => void>();
 
   // Load quiz
   useEffect(() => {
+    if (hasLoadedRef.current) return;
     const load = async () => {
       if (!user) return;
+      hasLoadedRef.current = true;
       const e = await getExamById(examId);
       if (!e) { toast.error("Exam not found"); onFinish(); return; }
       const attempted = await hasStudentAttempted(user.id, examId);
